@@ -6,7 +6,7 @@ server:
 
 # 数据库配置
 database:
-  host: "localhost"
+  host: "106.75.209.72"
   port: "3306"
   user: "root"
   password: "root"

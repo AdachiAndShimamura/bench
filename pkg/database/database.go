@@ -150,6 +150,51 @@ func (s *Service) GetStats() (map[string]interface{}, error) {
 	return stats, nil
 }
 
+// BatchInsertSensorData 批量插入传感器数据
+// BatchInsertSensorData 批量插入传感器数据
+func (s *Service) BatchInsertSensorData(data []*SensorData) error {
+	// 开始事务
+	tx, err := s.db.Begin()
+	if err != nil {
+		return err
+	}
+
+	query := `
+    INSERT INTO time_series_data 
+    (timestamp, device_id, metric_name, value, priority, data)
+    VALUES (?, ?, ?, ?, ?, ?)
+    `
+	stmt, err := tx.Prepare(query)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	defer stmt.Close()
+
+	// 批量执行插入
+	for _, d := range data {
+		// 假设SensorData结构体有对应的字段
+		// 如果没有data字段，可以设为NULL或空值
+		dataField := "" // 或其他默认值，或从d中获取
+
+		_, err := stmt.Exec(
+			d.Timestamp,
+			d.DeviceID,
+			d.MetricName,
+			d.Value, // 对应value字段
+			d.Priority,
+			dataField, // 对应data字段
+		)
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+
+	// 提交事务
+	return tx.Commit()
+}
+
 // GetDB 获取数据库连接，供其他包使用
 func (s *Service) GetDB() *sql.DB {
 	return s.db
