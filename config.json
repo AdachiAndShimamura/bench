@@ -8,5 +8,5 @@
     "report_interval": 1,
     "mysql_dsn": "root@tcp(10.23.69.193:3306)/bench_server",
     "report_url": "http://106.75.213.115:8080/api/stats/report",
-    "report_key": ""
+    "report_key": "team3"
   }

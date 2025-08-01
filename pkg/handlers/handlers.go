@@ -61,9 +61,9 @@ func (s *Server) backgroundFlush() {
 // flushCache 将缓存中的数据批量写入数据库
 func (s *Server) flushCache() {
 	s.cacheMutex.Lock()
-	defer s.cacheMutex.Unlock()
 
 	if len(s.cache) == 0 {
+		s.cacheMutex.Unlock()
 		return
 	}
 
@@ -71,6 +71,7 @@ func (s *Server) flushCache() {
 	dataToInsert := make([]*database.SensorData, len(s.cache))
 	copy(dataToInsert, s.cache)
 	s.cache = s.cache[:0]
+	s.cacheMutex.Unlock()
 
 	// 批量插入数据
 	dbService := database.NewService(s.db)
@@ -118,6 +119,9 @@ func (s *Server) SensorDataHandler(w http.ResponseWriter, r *http.Request) {
 	// 将数据添加到缓存
 	s.cacheMutex.Lock()
 	s.cache = append(s.cache, &data)
+	if len(s.cache) >= 1000 {
+		s.flushCache()
+	}
 	s.cacheMutex.Unlock()
 
 	w.Header().Set("Content-Type", "application/json")
